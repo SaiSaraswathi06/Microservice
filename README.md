@@ -1,164 +1,110 @@
-# Microservice
-# Microservice – 2FA Authentication System
+# 🔐 PKI-Based 2FA Microservice
 
-This project implements a secure Two-Factor Authentication (2FA) microservice using:
-- Python (FastAPI)
-- Docker & Docker Compose
-- Cron job for periodic TOTP generation
-- RSA-based encrypted seed exchange
+A complete microservice implementing RSA cryptography, seed decryption, TOTP generation, verification APIs, and automated cron-based logging — containerized using Docker.
 
 ---
 
-## 📌 Features Implemented
+## 🚀 Features
 
-### ✅ 1. `/decrypt-seed`  
-Decrypts the encrypted seed using the student's private key.
+### ✔ RSA 4096-bit key pair  
+Used to authenticate student identity and decrypt the instructor-provided encrypted seed.
 
-### ✅ 2. `/generate-2fa`  
-Generates a TOTP code valid for 15 seconds.
+### ✔ Seed Decryption (RSA–OAEP–SHA256)  
+Encrypted seed is securely decrypted inside the service and stored in `/data/seed.txt`.
 
-### ✅ 3. `/verify-2fa`  
-Verifies a submitted 2FA code.
+### ✔ TOTP Generation (RFC-6238)  
+Generates 6-digit 2FA codes every 30 seconds using SHA-1, period = 30s.
 
-### ✅ 4. Cron Job  
-Runs every 1 minute inside the container and logs:
+### ✔ API Endpoints (FastAPI)
+| Endpoint | Method | Description |
+|---------|--------|-------------|
+| `/decrypt-seed` | POST | Decrypts seed and stores it |
+| `/generate-2fa` | GET | Generates current TOTP |
+| `/verify-2fa` | POST | Verifies submitted code |
 
-```
-YYYY-MM-DD HH:MM:SS – 2FA Code: XXXXXX
-```
+### ✔ Cron Job  
+Logs a new TOTP code every minute into `/cron/last_code.txt`.
 
-into:
-
-```
-/cron/last_code.txt
-```
+### ✔ Dockerized Microservice  
+Runs both API server and cron service in one container.
 
 ---
 
-## 📁 Project Structure
+## 📁 File Structure
 
 ```
 Microservice/
-│
-├── app/
-│   ├── main.py
+│── app/
+│   ├── crypto_utils.py
 │   ├── totp_utils.py
-│   ├── seed_utils.py
-│
-├── scripts/
-│   ├── log_2fa_cron.py
+│   └── main.py
+│── scripts/
 │   ├── request_seed.py
-│   ├── verify_totp.py
-│
-├── cron/
-│   ├── 2fa-cron
-│   ├── last_code.txt (created in container)
-│
-├── Dockerfile
-├── docker-compose.yml
-├── requirements.txt
-├── encrypted_seed.txt
-├── instructor_public.pem
-├── student_public.pem
-├── student_private.pem
-└── README.md
+│   └── log_2fa_cron.py
+│── cron/
+│   └── 2fa-cron
+│── Dockerfile
+│── docker-compose.yml
+│── requirements.txt
+│── student_private.pem
+│── student_public.pem
+│── instructor_public.pem
 ```
 
 ---
 
-## 🐳 Running the Microservice
+# ✅ Submission Details (REQUIRED)
 
-### **Build & Run with Docker**
-```bash
-docker compose up --build
-```
-
-FastAPI runs at:
-
-```
-http://127.0.0.1:8080
-```
-
----
-
-## 🧪 Testing API Endpoints
-
-### **1️⃣ Decrypt Seed**
-```bash
-curl -X POST http://127.0.0.1:8080/decrypt-seed \
-     -H "Content-Type: application/json" \
-     -d "{\"encrypted_seed\": \"$(cat encrypted_seed.txt)\"}"
-```
-
-### **2️⃣ Generate 2FA Code**
-```bash
-curl http://127.0.0.1:8080/generate-2fa
-```
-
-### **3️⃣ Verify Code**
-```bash
-curl -X POST http://127.0.0.1:8080/verify-2fa \
-     -H "Content-Type: application/json" \
-     -d "{\"code\": \"123456\"}"
-```
-
----
-
-## 🕒 View Cron Output
-
-```bash
-docker exec -it saraswathi-task sh -c "cat /cron/last_code.txt"
-```
-
-Example output:
-
-```
-2025-12-11 13:35:03 – 2FA Code: 682004
-```
-
----
-
-## 📌 Submission Requirements
-
-After pushing all code to GitHub, go to the **Scaler Assignment Portal** and submit your repo link:
-
+### **GitHub Repository URL**
 ```
 https://github.com/SaiSaraswathi06/Microservice
 ```
 
-Scaler will automatically:
-- Clone your repo  
-- Run your microservice  
-- Validate outputs  
-- Generate a **64-character signature**
+### **Commit Hash (40-char)**
+```
+2b524f70484df161aa351f61b10f514be0ebdf55
+```
+
+### **Encrypted Signature (64-char)**
+```
+c5df0107e126c632377876ab90616ffb94a12c8e9c00d89a7820f1fce7136e35
+```
+
+### **Student Public Key (PEM)**  
+(Multi-line version)
+```
+-----BEGIN PUBLIC KEY-----
+MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAp+3oz0uqhbXx5XezxXaU
+KlRWYH82l/td2RJ2Y8MGQkNEazpFw8TVMFSyC60MeayCv9lwwq4atCcxp7wgv0pv
+xq2e78gVABjXdZdhkZvJkKVggZRb1E+cySzqs5Qu30j2YCQRJKSG/UOySMRK4qhf
+5QksAExppRhKyhdBp32F3JZzwZ+SObABb3EIf1tRi70dB/1YUjobXZprjKiZZPTP
+zQwmZ6lrE2/JDvRKh0yYMMmejkXrgABSpCHSzxS0a8IEPpYwKodteGD50q8qdVkw
+E/oMJDdJRp+padI9qiPLb5TxV4kVfEIdk6xSxpAi63nPVy0rMZK1fQFLVqGyX+rw
+coWSQwRw0ty5Aczih2PBhrLckM8JmR6w9ZajkKwdP02TkIrrFeHU+fXYlUUphuUe
+j2kt2bmXhANFHyZS0lYfzKk/4z4LEOKLmlSpaD3QXpSKFg322vxENHGRzUxPhobX
+DyvC4Kdah5bPUuF/z9f5DouQFtb/NzcOvyizTs83uW331Cw09aeB5svRjZ+mwvxg
+mnBk6WEBqJhA7y3S/L+l8Yiw7zGqNyAiwNak/m6yWsDtAOY6QjVH/qWGVIIZIw98
+nu/7mErxXDeumOHqPBZJlBACQqBUdTB7rnmhvsUJFWx3KyJpHFNVKfvTCD2dqFKo
+ToNDUtGnkGNnqP56eErZD38CAwEAAQ==
+-----END PUBLIC KEY-----
+```
 
 ---
 
-## 🔐 64-Character Signature (Fill This After Scaler Generates It)
+# 🛡 Production Improvements (What I Would Improve)
 
-```
-<PASTE YOUR SIGNATURE HERE>
-```
-
----
-
-## 🔑 Commit Hash (Use Your Latest Git Commit)
-
-Run:
-
-```bash
-git log --oneline | head -1
-```
-
-Then paste here:
-
-```
-<PASTE YOUR COMMIT HASH HERE>
-```
+- Load RSA keys from AWS Secrets Manager (never inside image)  
+- Enforce HTTPS, HSTS, and mTLS for internal services  
+- Rate-limit API and add API keys/JWT auth  
+- Move seed + logs to encrypted database  
+- Run service as non-root  
+- Add Prometheus + Grafana monitoring  
+- Deploy using Kubernetes with auto-scaling  
+- Add vulnerability scanning in CI/CD  
 
 ---
 
-## 🎉 Done!
+# 🎯 **Task Completed Successfully**
 
-You have successfully completed the Microservice Assignment.
+ 
 
